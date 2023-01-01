@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21513" systemVersion="22A400" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ListTasks" representedClassName="ListTasks" syncable="YES">
+        <attribute name="header" attributeType="String"/>
+        <relationship name="task" optional="YES" toMany="YES" minCount="1" deletionRule="Cascade" destinationEntity="TaskInfo" inverseName="parent" inverseEntity="TaskInfo" spotlightIndexingEnabled="YES"/>
+    </entity>
+    <entity name="TaskInfo" representedClassName="TaskInfo" syncable="YES">
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="text" attributeType="Transformable" valueTransformerName="" customClassName="NSAttributedString"/>
+        <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ListTasks" inverseName="task" inverseEntity="ListTasks"/>
+    </entity>
+</model>
