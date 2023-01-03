@@ -8,36 +8,32 @@
 import SwiftUI
 import UIKit
 
+
 @available(iOS 13.0, *)
 final class InputAccessoryView: UIInputView {
-    
-    private var accessorySections: Array<EditorSection>
+
+    private var stateTextFormat: SelecrtedTextFormat
+    private var stateTextStyle: SelectedTextStyle
+    private(set) var accessorySections: Array<EditorSection>
     private var textFontName: String = "AvenirNext-Regular"
-    
     private let baseHeight: CGFloat = 44
-    private let padding: CGFloat = 8
-    private let buttonWidth: CGFloat = 32
-    private let buttonHeight: CGFloat = 32
+    private let padding: CGFloat = 15
+    private let buttonWidth: CGFloat = 50
+    private let buttonHeight: CGFloat = 50
     private let cornerRadius: CGFloat = 6
     private let edgeInsets: CGFloat = 5
     private let selectedColor = UIColor.separator
     private let containerBackgroundColor: UIColor = .systemBackground
     private let colorConf = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
     private var imageConf: UIImage.SymbolConfiguration {
-        UIImage.SymbolConfiguration(pointSize: min(buttonWidth, buttonHeight) * 0.7)
+        UIImage.SymbolConfiguration(pointSize: min(buttonWidth, buttonHeight) * 0.5)
     }
     
     weak var delegate: TextEditorDelegate!
     
-    // MARK: Input Accessory Buttons
-    
-    private lazy var stackViewSeparator: UIView = {
-        let separator = UIView()
-        separator.widthAnchor.constraint(equalToConstant: 1).isActive = true
-        separator.backgroundColor = .secondaryLabel
-        return separator
-    }()
-    
+    // MARK: Input Accessory separators
+
+
     private lazy var separator: UIView = {
         let separator = UIView()
         let spacerWidthConstraint = separator.widthAnchor.constraint(equalToConstant: .greatestFiniteMagnitude)
@@ -46,7 +42,9 @@ final class InputAccessoryView: UIInputView {
         return separator
     }()
     
-    private lazy var keyboardButton: UIButton = {
+    
+    // MARK: Input Accessory Buttons
+    private lazy var keyboardHideButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "keyboard.chevron.compact.down", withConfiguration: imageConf), for: .normal)
         button.addTarget(self, action: #selector(hideKeyboard(_:)), for: .touchUpInside)
@@ -58,29 +56,33 @@ final class InputAccessoryView: UIInputView {
         return button
     }()
     
-    private lazy var increaseFontButton: UIButton = {
+    // Button to select : bold, italics, underlined, strikethrough
+    private lazy var fontFormatButton: UIButton = {
+        
+        let menu = setUpMenuFontFormat()
         let button = UIButton()
-        button.setImage(UIImage(systemName: "plus.circle", withConfiguration: imageConf), for: .normal)
-        button.addTarget(self, action: #selector(increaseFontSize), for: .touchUpInside)
+        button.showsMenuAsPrimaryAction = true
+        button.menu = menu
+        button.setImage(UIImage(systemName: "bold.italic.underline", withConfiguration: imageConf), for: .normal)
         button.backgroundColor = .clear
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
-
-        return button
-    }()
-    
-    
-    private lazy var decreaseFontButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(systemName: "minus.circle", withConfiguration: imageConf), for: .normal)
-        button.addTarget(self, action: #selector(decreaseFontSize), for: .touchUpInside)
-        button.backgroundColor = .clear
-        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
-        button.heightAnchor.constraint(equalToConstant: buttonHeight).isActive = true
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
         
         return button
     }()
     
+    
+    private lazy var textStyleButton: UIButton = {
+        let menu = setUpTextStyleFormat()
+        let button = UIButton()
+        button.showsMenuAsPrimaryAction = true
+        button.menu = menu
+        button.setImage(UIImage(systemName: "textformat.size", withConfiguration: imageConf), for: .normal)
+        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+        button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1 / 1).isActive = true
+        return button
+    }()
+        
     private lazy var textFontLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
@@ -92,7 +94,7 @@ final class InputAccessoryView: UIInputView {
     private lazy var boldButton: UIButton = {
         let button = UIButton()
         button.addTarget(self, action: #selector(textStyle(_:)), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "bold", withConfiguration: imageConf), for: .normal)
+        button.setImage(UIImage(systemName: "bold.italic.underline", withConfiguration: imageConf), for: .normal)
         button.backgroundColor = .clear
         button.tag = 1
         button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
@@ -226,6 +228,8 @@ final class InputAccessoryView: UIInputView {
     init(frame: CGRect, inputViewStyle: UIInputView.Style, accessorySections: Array<EditorSection>) {
         self.accessoryContentView = UIStackView()
         self.accessorySections = accessorySections
+        self.stateTextFormat = SelecrtedTextFormat()
+        self.stateTextStyle = SelectedTextStyle()
         super.init(frame: frame, inputViewStyle: inputViewStyle)
         
         setupAccessoryView()
@@ -256,42 +260,140 @@ final class InputAccessoryView: UIInputView {
         ])
     }
     
+    // Menu to choose from: large header, header, small header and plain text
+    private func setUpTextStyleFormat() -> UIMenu {
+    
+        let menu = UIMenu(options: .displayInline, children: [
+            UIDeferredMenuElement.uncached { [weak self] comletion in
+                let action = [
+                    UIAction(title: "Large header", state: self?.stateTextStyle.largeHeader ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextStyle.largeHeader == .off {
+                            self?.stateTextStyle.largeHeader = .on
+                            
+                        } else {
+                            self?.stateTextStyle.largeHeader = .off
+                        }
+                        self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
+                    },
+                    
+                    UIAction(title: "Header", state: self?.stateTextStyle.header ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextStyle.header == .off {
+                            self?.stateTextStyle.header = .on
+                            
+                        } else {
+                            self?.stateTextStyle.header = .off
+                        }
+                        self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
+
+                    },
+                    
+                    UIAction(title: "Small header", state: self?.stateTextStyle.smallHeader ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextStyle.smallHeader == .off {
+                            self?.stateTextStyle.smallHeader = .on
+                            
+                        } else {
+                            self?.stateTextStyle.smallHeader = .off
+                        }
+                        self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
+
+                    },
+                    
+                    UIAction(title: "Plain text", state: self?.stateTextStyle.plainText ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextStyle.plainText == .off {
+                            self?.stateTextStyle.plainText = .on
+                            
+                        } else {
+                            self?.stateTextStyle.plainText = .off
+                        }
+                        self?.delegate.textStyle(self?.stateTextStyle.textStyle ?? .largeHeader)
+
+                    },
+                    
+                ]
+                comletion(action)
+            }
+        ])
+        
+        return menu
+    }
+ 
+    // Menu to choose from: bold, italic, underline and Strikethrough text
+    private func setUpMenuFontFormat() -> UIMenu {
+        let menu = UIMenu(options: .displayInline, children: [
+            UIDeferredMenuElement.uncached { [weak self] completion in
+                let actions = [
+                    UIAction(title: "Underline",  image: UIImage(systemName: "underline"), state: self?.stateTextFormat.underline ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextFormat.underline == .off {
+                            self?.stateTextFormat.underline = .on
+                            
+                        } else {
+                            self?.stateTextFormat.underline = .off
+                        }
+                        self?.delegate.textUnderline()
+                    },
+                    UIAction(title: "Strikethrough", image: UIImage(systemName: "strikethrough"), state: self?.stateTextFormat.strikethrough ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextFormat.strikethrough == .off {
+                            self?.stateTextFormat.strikethrough = .on
+                            
+                        } else {
+                            self?.stateTextFormat.strikethrough = .off
+                        }
+                        self?.delegate.textStrike()
+                    },
+                    UIAction(title: "Italic", image: UIImage(systemName: "italic"), state: self?.stateTextFormat.italic ?? UIAction.State.off) {[weak self] action in
+                        if self?.stateTextFormat.italic == .off {
+                            self?.stateTextFormat.italic = .on
+                           
+
+                        } else {
+                            self?.stateTextFormat.italic = .off
+                        }
+                        self?.delegate.textItalic()
+                    },
+                    UIAction( title: "Bold", image: UIImage(systemName: "bold"),state: self?.stateTextFormat.bold ?? UIAction.State.off) { [weak self] action in
+                        if self?.stateTextFormat.bold == .off {
+                            self?.stateTextFormat.bold = .on
+                           
+
+                        } else {
+                            self?.stateTextFormat.bold = .off
+                        }
+                        self?.delegate.textBold()
+                    }
+                ]
+                completion(actions)
+            }
+        ])
+        
+        return menu
+    }
+    
+// MARK: - Toolbar
     private var toolbar: UIStackView {
         let stackView = UIStackView()
-        
-        if accessorySections.contains(.bold) {
-            stackView.addArrangedSubview(boldButton)
+
+        if accessorySections.contains(.fontFormat) {
+            stackView.addArrangedSubview(fontFormatButton)
         }
-        if accessorySections.contains(.italic) {
-            stackView.addArrangedSubview(italicButton)
+        if accessorySections.contains(.fontStyle) {
+            stackView.addArrangedSubview(textStyleButton)
         }
-        if accessorySections.contains(.underline) {
-            stackView.addArrangedSubview(underlineButton)
-        }
-        if accessorySections.contains(.strike) {
-            stackView.addArrangedSubview(strikeButton)
-        }
-        
+
         if accessorySections.contains(.textAlignment) {
             stackView.addArrangedSubview(alignmentButton)
         }
-        if accessorySections.contains(.fontAdjustment) {
-            
-            stackView.addArrangedSubview(decreaseFontButton)
-            stackView.addArrangedSubview(increaseFontButton)
-        }
+
         if accessorySections.contains(.image) {
             stackView.addArrangedSubview(insertImageButton)
         }
-        
         stackView.addArrangedSubview(separator)
         if accessorySections.contains(.keyboard) {
-            stackView.addArrangedSubview(keyboardButton)
+            stackView.addArrangedSubview(keyboardHideButton)
         }
         stackView.axis = .horizontal
         stackView.alignment = .center
         stackView.spacing = padding
-        stackView.distribution = .equalSpacing
+        stackView.distribution = .equalCentering
         
         return stackView
     }
@@ -330,14 +432,6 @@ final class InputAccessoryView: UIInputView {
         delegate.textAlign(align: textAlignment)
     }
     
-    @objc private func increaseFontSize() {
-        delegate.adjustFontSize(isIncrease: true)
-    }
-    
-    @objc private func decreaseFontSize() {
-        delegate.adjustFontSize(isIncrease: false)
-    }
-    
     @objc private func textFont(font: String) {
         delegate.textFont(name: font)
     }
@@ -362,31 +456,45 @@ final class InputAccessoryView: UIInputView {
             if attribute.key == .font {
                 if let font = attribute.value as? UIFont {
                     let fontSize = font.pointSize
-                    
+                    switch fontSize {
+                    case TextStyleFormat.plainText.rawValue:
+                        self.stateTextStyle.plainText = .on
+                    case TextStyleFormat.smallHeader.rawValue:
+                        self.stateTextStyle.smallHeader = .on
+                    case TextStyleFormat.header.rawValue:
+                        self.stateTextStyle.header = .on
+                    case TextStyleFormat.largeHeader.rawValue:
+                        self.stateTextStyle.largeHeader = .on
+                    default:
+                        self.stateTextStyle.largeHeader = .on
+                        self.stateTextStyle.largeHeader = .off
+                    }
                     textFontLabel.text = "\(Int(fontSize))"
                     let isBold = (font == UIFont.boldSystemFont(ofSize: fontSize))
                     let isItalic = (font == UIFont.italicSystemFont(ofSize: fontSize))
-                    selectedButton(boldButton, isSelected: isBold)
-                    selectedButton(italicButton, isSelected: isItalic)
+
+                    isBold ? (self.stateTextFormat.bold = .on) : (self.stateTextFormat.bold = .off)
+                    isItalic ? (self.stateTextFormat.italic = .on) : (self.stateTextFormat.italic = .off)
                 } else {
-                    selectedButton(boldButton, isSelected: false)
-                    selectedButton(italicButton, isSelected: false)
+                    self.stateTextFormat.bold = .off
+                    self.stateTextFormat.italic = .off
+
                 }
             }
             
             if attribute.key == .underlineStyle {
                 if let style = attribute.value as? Int {
-                    selectedButton(underlineButton, isSelected: style == NSUnderlineStyle.single.rawValue )
+                    style == NSUnderlineStyle.single.rawValue ? (self.stateTextFormat.underline = .on) : (self.stateTextFormat.underline = .off)
                 } else {
-                    selectedButton(underlineButton, isSelected: false)
+                    self.stateTextFormat.underline = .off
                 }
             }
             
             if attribute.key == .strikethroughStyle {
                 if let style = attribute.value as? Int {
-                    selectedButton(strikeButton, isSelected: style == NSUnderlineStyle.single.rawValue)
+                    style == NSUnderlineStyle.single.rawValue ? (self.stateTextFormat.strikethrough = .on) : (self.stateTextFormat.strikethrough = .off)
                 }  else {
-                    selectedButton(strikeButton, isSelected: false)
+                    self.stateTextFormat.strikethrough = .off
                 }
             }
             

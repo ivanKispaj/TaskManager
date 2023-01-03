@@ -10,24 +10,24 @@ import SwiftUI
 @available(iOS 13.0, *)
 public struct TextEditor: View {
     @State var dynamicHeight: CGFloat = 100
-    private let richText: NSMutableAttributedString
+    private let attributedText: NSMutableAttributedString
     private let placeholder: String
     private let accessorySections: Array<EditorSection>
     private let onCommit: (NSAttributedString) -> Void
     public init(
-        richText: NSMutableAttributedString,
+        attributedText: NSMutableAttributedString,
         placeholder: String = "",
         accessory sections: Array<EditorSection> = EditorSection.allCases,
         onCommit: @escaping ((NSAttributedString) -> Void)
     ) {
-        self.richText = richText
+        self.attributedText = attributedText
         self.placeholder = placeholder
         self.accessorySections = sections
         self.onCommit = onCommit
     }
     
     public var body: some View {
-        TextEditorWrapper(richText: richText, height: $dynamicHeight, placeholder: placeholder, sections: accessorySections, onCommit: onCommit)
+        TextEditorWrapper(attributedText: attributedText, height: $dynamicHeight, placeholder: placeholder, sections: accessorySections, onCommit: onCommit)
             .frame(minHeight: dynamicHeight, maxHeight: dynamicHeight)
             
     }

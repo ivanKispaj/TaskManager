@@ -6,21 +6,23 @@
 //
 
 import SwiftUI
+import UIKit
 
 @available(iOS 13.0, *)
 struct TextEditorWrapper: UIViewControllerRepresentable {
-    private var richText: NSMutableAttributedString
-    @Binding private var height: CGFloat
     
+    @EnvironmentObject var scene: SceneDelegate
+    
+    private var attributedText: NSMutableAttributedString
+    @Binding private var height: CGFloat
     private var controller: UIViewController
     private var textView: UITextView
     private var accessoryView: InputAccessoryView
-    
     private let placeholder: String
     private let lineSpacing: CGFloat = 3
     // Default color
     private let hintColor = UIColor(named: "whiteBlack") ?? UIColor.systemGray6
-    private var defaultFontSize: CGFloat = UIFont.systemFontSize
+    private var defaultFontSize: CGFloat = 24
     private let defaultFontName = "AvenirNext-Regular"
     private let onCommit: ((NSAttributedString) -> Void)
     
@@ -29,27 +31,31 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         return UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
     }
     
-    // TODO: line width, line style
+    // MARK: - Init
     init(
-        richText: NSMutableAttributedString,
+        
+        attributedText: NSMutableAttributedString,
         height: Binding<CGFloat>,
         placeholder: String,
         sections: Array<EditorSection>,
         onCommit: @escaping ((NSAttributedString) -> Void)
     ) {
-      
-        self.richText = richText
+        
+        self.attributedText = attributedText
         self._height = height
         self.controller = UIViewController()
         self.textView = UITextView()
-        let rect = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: sections.contains(.color) ? 70 : 40)
         self.placeholder = placeholder
         self.onCommit = onCommit
-        self.accessoryView = InputAccessoryView(frame: rect, inputViewStyle: .default, accessorySections: sections)
+        self.accessoryView = InputAccessoryView(frame: .zero, inputViewStyle: .default, accessorySections: sections)
     }
     
+    // makeUIView method
     func makeUIViewController(context: Context) -> some UIViewController {
         setUpTextView()
+        let sections = accessoryView.accessorySections
+        let rect = CGRect(x: 0, y: 0, width: scene.sceneSize?.width ?? 0, height: sections.contains(.color) ? 70 : 40)
+        self.accessoryView.frame = rect
         textView.delegate = context.coordinator
         context.coordinator.textViewDidChange(textView)
         
@@ -58,21 +64,29 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         return controller
     }
     
+    // updateUIViewController method
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
         
     }
     
+    // makeCoordinator method
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
+    
+    //MARK: - The first TextView setup
     private func setUpTextView() {
-        if richText.string == "" {
+        // If this is the first creation of an empty TextView
+        // Setting the default font attributes
+        if attributedText.string == "" {
             textView.attributedText = NSAttributedString(string: placeholder, attributes: [.foregroundColor: hintColor])
+            let headerFont = UIFont(name: defaultFontName, size: defaultFontSize) ?? .systemFont(ofSize: defaultFontSize)
+            textView.typingAttributes = [.font : headerFont]
         } else {
-            textView.attributedText = richText
+            // Otherwise, text with attributes is written to TextView
+            textView.attributedText = attributedText
         }
-        textView.typingAttributes = [.font : defaultFont]
         textView.isEditable = true
         textView.isSelectable = true
         textView.isScrollEnabled = false
@@ -86,13 +100,18 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         textView.backgroundColor = .systemBackground
         
         controller.view.addSubview(textView)
+        
         textView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             textView.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
             textView.centerYAnchor.constraint(equalTo: controller.view.centerYAnchor),
             textView.widthAnchor.constraint(equalTo: controller.view.widthAnchor),
         ])
+        
+        
     }
+    
+    
     
     private func scaleImage(image: UIImage, maxWidth: CGFloat, maxHeight: CGFloat) -> UIImage {
         let ratio = image.size.width / image.size.height
@@ -105,6 +124,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         return scaledimage!
     }
     
+    //MARK: - Coordinator
     class Coordinator: NSObject, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, TextEditorDelegate {
         var parent: TextEditorWrapper
         var fontName: String
@@ -115,10 +135,11 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         init(_ parent: TextEditorWrapper) {
             self.parent = parent
             self.fontName = parent.defaultFontName
+            
         }
         
         // MARK: - Image Picker
-        
+
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let img = info[UIImagePickerController.InfoKey.editedImage] as? UIImage, var image = img.roundedImageWithBorder(color: .secondarySystemBackground) {
                 textViewDidBeginEditing(parent.textView)
@@ -147,8 +168,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         // MARK: - Text Editor Delegate
         
-        /// - If user doesn't selecte any text, make follow typing text bold
-        /// - if user selected text contain bold, then make them plain, else make them bold
         func textBold() {
             let attributes = parent.textView.selectedRange.isEmpty ? parent.textView.typingAttributes : selectedAttributes
             let fontSize = getFontSize(attributes: attributes)
@@ -177,17 +196,13 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             parent.textView.textAlignment = align
         }
         
-        func adjustFontSize(isIncrease: Bool) {
+        func textStyle(_ textStyle: TextStyleFormat) {
             var font: UIFont
-            
-            let maxFontSize: CGFloat = 24
-            let minFontSize: CGFloat = 10
-            
             let attributes = parent.textView.selectedRange.isEmpty ? parent.textView.typingAttributes : selectedAttributes
-            let size = getFontSize(attributes: attributes)
-            let fontSize = size + CGFloat(isIncrease ? (size < maxFontSize ? 1 : 0) : (size > minFontSize ? -1 : 0))
-            let defaultFont = UIFont.systemFont(ofSize: fontSize)
             
+            let fontSize = textStyle.rawValue
+            
+            let defaultFont = UIFont.systemFont(ofSize: fontSize)
             if isContainBoldFont(attributes: attributes) {
                 font = UIFont.boldSystemFont(ofSize: fontSize)
             } else if isContainItalicFont(attributes: attributes) {
@@ -195,7 +210,6 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             } else {
                 font = defaultFont
             }
-            
             textEffect(type: UIFont.self, key: .font, value: font, defaultValue: defaultFont)
         }
         
@@ -222,23 +236,11 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             parent.controller.present(imagePicker, animated: true, completion: nil)
         }
         
-        func insertLine(name: String) {
-            if let line = UIImage(named: name) {
-                let newString = NSMutableAttributedString(attributedString: parent.textView.attributedText)
-                let image = scaleImage(image: line, maxWidth: 280, maxHeight: 20)
-                let attachment = NSTextAttachment(image: image)
-                let attachedString = NSAttributedString(attachment: attachment)
-                newString.append(attachedString)
-                parent.textView.attributedText = newString
-            }
-        }
-        
         func hideKeyboard() {
             parent.textView.resignFirstResponder()
         }
         
-        /// Add text attributes to text view
-        /// - Returns:If text view's typing attributes revised, return true; if attributes are only for text in selected range, return false.
+        // Add text attributes to text view
         private func textEffect<T: Equatable>(type: T.Type, key: NSAttributedString.Key, value: Any, defaultValue: T) {
             let range = parent.textView.selectedRange
             if !range.isEmpty {
@@ -263,7 +265,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             }
         }
         
-        /// Find specific attribute in the range of text which user selected
+        // Find specific attribute in the range of text which user selected
         /// - parameter range: Selected range in text view
         private func isContain<T: Equatable>(type: T.Type, range: NSRange, key: NSAttributedString.Key, value: Any) -> Bool {
             var isContain: Bool = false
@@ -298,6 +300,19 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             }
         }
         
+        /// Checks if the line after the very first header is empty
+        private func isEmptyLineAfterHeader(_ textView: UITextView) -> Bool {
+            let textArr = textView.attributedText.string.components(separatedBy: "\n")
+            
+            if  textArr.count == 2 && textArr[1].isEmpty {
+                return true
+            }
+            return false
+        }
+        
+        // Gets the font size
+        /// - parameter attributes: Attribute Dictionary array
+        /// - Returns: the size of the text in CGFloat forma
         private func getFontSize(attributes: [NSAttributedString.Key : Any]) -> CGFloat {
             if let value = attributes[.font] as? UIFont {
                 return value.pointSize
@@ -306,41 +321,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             }
         }
         
-        private func getLastFontSize(from text: NSAttributedString) -> CGFloat? {
-            var size: [CGFloat] = []
-            text.enumerateAttribute(.font, in: NSRange(0..<text.length), using: { value, range, stop in
-                if let font = value as? UIFont {
-                    size.append(font.pointSize)
-                }
-            })
-            return size.last
-        }
-        
-        
-        private func setLastFontAttr(from text: NSAttributedString)  {
-            var fonts: [UIFont] = []
-            var colors: [UIColor] = []
-            text.enumerateAttribute(.font, in: NSRange(0..<text.length), using: { value, range, stop in
-                if let font = value as? UIFont {
-                    fonts.append(font)
-                }
-            })
-            text.enumerateAttribute(.foregroundColor, in: NSRange(0..<text.length)) { value, range, stop in
-                if let color = value as? UIColor {
-                    colors.append(color)
-                }
-            }
-            if let font = fonts.last {
-                print(font.pointSize)
-                textEffect(type: UIFont.self, key: .font, value: font, defaultValue: font)
-            }
-            if let color = colors.last{
-                print(color.accessibilityName)
-                textEffect(type: UIColor.self, key: .foregroundColor, value: color, defaultValue: color)
-
-            }
-        }
-        
+        // List of selected attributes for the text
         var selectedAttributes: [NSAttributedString.Key : Any] {
             let textRange = parent.textView.selectedRange
             if textRange.isEmpty {
@@ -361,7 +342,7 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         
         func textViewDidChangeSelection(_ textView: UITextView) {
             let textRange = parent.textView.selectedRange
-
+            
             if textRange.isEmpty {
                 parent.accessoryView.updateToolbar(typingAttributes: parent.textView.typingAttributes, textAlignment: parent.textView.textAlignment)
             } else {
@@ -373,19 +354,16 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             
             if textView.attributedText.string == parent.placeholder {
                 parent.isHeader.toggle()
-                // Попадаем сюда когда первое создание и поле ничего не содержит!
-                let font = UIFont(name: self.fontName, size: 24)!
-                let defaultFont = UIFont.systemFont(ofSize: 24)
-                textEffect(type: UIFont.self, key: .font, value: font, defaultValue: defaultFont)
-                textEffect(type: UIColor.self, key: .foregroundColor, value: parent.hintColor, defaultValue: parent.hintColor)
-
+                /// We get here when the first creation and the field contains nothing!
+                self.textStyle(.largeHeader)
+                
             } else {
-                if let text = textView.attributedText {
-                   self.setLastFontAttr(from: text)
+                /// If the line after the header is empty,
+                /// resetting the font size value to the smallest
+                if isEmptyLineAfterHeader(textView){
+                    self.textStyle(.plainText)
                 }
             }
-            
-            
         }
         
         func textViewDidEndEditing(_ textView: UITextView) {
@@ -393,15 +371,15 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
         }
         
         func textViewDidChange(_ textView: UITextView) {
-           
+            
             if textView.attributedText.string != parent.placeholder {
-                parent.richText = NSMutableAttributedString(attributedString: textView.attributedText)
-                
+                parent.attributedText = NSMutableAttributedString(attributedString: textView.attributedText)
             }
-            let count = textView.attributedText.string.components(separatedBy: "\n").count
-            if  count >= 2 && parent.isHeader  {
-                    setFontSize(fontSize: 14)
-                parent.isHeader.toggle()
+            /// If the line after the header is empty,
+            /// resetting the font size value to the smallest
+            if  isEmptyLineAfterHeader(textView) {
+                self.textStyle(.plainText)
+                parent.isHeader = false
             }
             let size = CGSize(width: parent.controller.view.frame.width, height: .infinity)
             let estimatedSize = textView.sizeThatFits(size)
@@ -413,20 +391,9 @@ struct TextEditorWrapper: UIViewControllerRepresentable {
             textView.scrollRangeToVisible(textView.selectedRange)
         }
         
-        func setFontSize(fontSize: CGFloat) {
-            let attributes = parent.textView.selectedRange.isEmpty ? parent.textView.typingAttributes : selectedAttributes
-            let fontSize = fontSize
-            var defaultFont = UIFont.systemFont(ofSize: fontSize)
-            
-            if isContainBoldFont(attributes: attributes) {
-                defaultFont = UIFont.boldSystemFont(ofSize: fontSize)
-            } else if isContainItalicFont(attributes: attributes) {
-                defaultFont = UIFont.italicSystemFont(ofSize: fontSize)
-            }
-            textEffect(type: UIFont.self, key: .font, value: defaultFont, defaultValue: defaultFont)
-        }
+        
+        
     }
     
-   
 }
 

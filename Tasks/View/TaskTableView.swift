@@ -38,7 +38,7 @@ struct TaskTableView: View {
         NavigationView {
             
             List {
-                ForEach(items) { item in
+                ForEach(items, id: \.id) { item in
                     Section {
                         if let tasks = item.sortedTask {
                             ForEach(tasks) { task in

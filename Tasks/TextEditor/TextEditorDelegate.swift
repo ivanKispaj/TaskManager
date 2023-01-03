@@ -9,11 +9,11 @@ import SwiftUI
 
 protocol TextEditorDelegate: AnyObject {
     // Font
+    func textStyle(_ textStyle: TextStyleFormat)
     func textBold()
     func textItalic()
     func textStrike()
     func textUnderline()
-    func adjustFontSize(isIncrease: Bool)
     func textColor(color: UIColor)
     func textFont(name: String)
     func insertImage()

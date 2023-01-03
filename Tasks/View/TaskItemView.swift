@@ -19,10 +19,10 @@ struct TaskItemView: View {
     @State var headerTask = NSAttributedString()
     // The text for the task itself
     @State var textTask = NSAttributedString()
-    // To display the keyboard and focus on the textField of the title
-    @FocusState var focused: Bool
-    // To display the keyboard and focus on the task textField
-    @FocusState var focusedNext: Bool
+//    // To display the keyboard and focus on the textField of the title
+//    @FocusState var focused: Bool
+//    // To display the keyboard and focus on the task textField
+//    @FocusState var focusedNext: Bool
     // for change type text format
     @State var isChangeTextType = false
     
@@ -32,15 +32,10 @@ struct TaskItemView: View {
             
             HStack {
                 
-                TextEditor(richText: NSMutableAttributedString(attributedString: textTask) , onCommit: { text in
+                TextEditor(attributedText: NSMutableAttributedString(attributedString: textTask) ,onCommit: { text in
                     self.textTask = text
                 })
-                .submitLabel(.next)
-                .font(.title)
-                .onSubmit {
-                    self.focused = false
-                    self.focusedNext = true
-                }
+               
             }
             
             .onDisappear {
@@ -51,6 +46,7 @@ struct TaskItemView: View {
             
             
         }
+        
     }
 
     // MARK: - Method for adding a task to the task list

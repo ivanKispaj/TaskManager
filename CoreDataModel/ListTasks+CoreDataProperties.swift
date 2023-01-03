@@ -11,7 +11,8 @@ import CoreData
 
 
 extension ListTasks {
-
+    
+    
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ListTasks> {
         return NSFetchRequest<ListTasks>(entityName: "ListTasks")
     }
@@ -46,9 +47,11 @@ extension ListTasks {
 
     @objc(removeTask:)
     @NSManaged public func removeFromTask(_ values: NSSet)
-
+    
 }
 
 extension ListTasks : Identifiable {
-
+   public var id: UUID {
+        return UUID()
+    }
 }
