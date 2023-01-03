@@ -20,12 +20,7 @@ struct TaskItemView: View {
     @State var headerTask = NSAttributedString()
     // The text for the task itself
     @State var textTask = NSAttributedString()
-    //    // To display the keyboard and focus on the textField of the title
-    //    @FocusState var focused: Bool
-    //    // To display the keyboard and focus on the task textField
-    //    @FocusState var focusedNext: Bool
-    // for change type text format
-    @State var isChangeTextType = false
+
     var deviceFrame: CGRect {
         if let frame = scene.sceneSize {
             return frame

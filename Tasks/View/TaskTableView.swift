@@ -35,7 +35,7 @@ struct TaskTableView: View {
     @State var countTask: String = "0"
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             
             List {
                 ForEach(items, id: \.id) { item in
@@ -85,11 +85,7 @@ struct TaskTableView: View {
                         }
                     }
                     
-                    //                    Section(item.header!) {
-                    //
-                    //                     //   if let tasks = item.task?.allObjects as? [TaskInfo] {
-                    //
-                    //                    }
+                
                     
                 }
                 

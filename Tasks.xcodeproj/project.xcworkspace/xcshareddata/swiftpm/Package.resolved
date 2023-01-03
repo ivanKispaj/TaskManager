@@ -1,12 +1,12 @@
 {
   "pins" : [
     {
-      "identity" : "teksteditor",
+      "identity" : "texteditor",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ivanKispaj/TekstEditor.git",
+      "location" : "https://github.com/ivanKispaj/TextEditor.git",
       "state" : {
-        "revision" : "c26426f4dcbb74b0fde9b232f1bbb0b4ddaed21b",
-        "version" : "1.0.1"
+        "revision" : "22d3fbc33b4176ce84edcb706e5d9effbd694409",
+        "version" : "2.0.0"
       }
     }
   ],
