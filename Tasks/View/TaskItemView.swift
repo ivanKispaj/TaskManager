@@ -7,9 +7,10 @@
 
 import Foundation
 import SwiftUI
+import TextEditor
 
 struct TaskItemView: View {
-    
+    @EnvironmentObject var scene: SceneDelegate
     @Environment(\.managedObjectContext) private var viewContext
     // The task itself passed to the view
     @State var task: TaskInfo?
@@ -19,36 +20,39 @@ struct TaskItemView: View {
     @State var headerTask = NSAttributedString()
     // The text for the task itself
     @State var textTask = NSAttributedString()
-//    // To display the keyboard and focus on the textField of the title
-//    @FocusState var focused: Bool
-//    // To display the keyboard and focus on the task textField
-//    @FocusState var focusedNext: Bool
+    //    // To display the keyboard and focus on the textField of the title
+    //    @FocusState var focused: Bool
+    //    // To display the keyboard and focus on the task textField
+    //    @FocusState var focusedNext: Bool
     // for change type text format
     @State var isChangeTextType = false
-    
+    var deviceFrame: CGRect {
+        if let frame = scene.sceneSize {
+            return frame
+        } else {
+            return CGRect(x: 0, y: 0, width: 0, height: 0)
+        }
+    }
     var body: some View {
         
         ScrollView(.vertical ,showsIndicators: false) {
-            
-            HStack {
                 
-                TextEditor(attributedText: NSMutableAttributedString(attributedString: textTask) ,onCommit: { text in
-                    self.textTask = text
-                })
-               
-            }
+                HStack {
+                    
+                    TextEditor(attributedText: NSMutableAttributedString(attributedString: textTask) , deviceFrame: deviceFrame, onCommit: { text in
+                        self.textTask = text
+                    })
+                    
+                }
             
-            .onDisappear {
-                self.addTask()
-            }
-            
-            
-            
+                .onDisappear {
+                    self.addTask()
+                }
             
         }
         
     }
-
+    
     // MARK: - Method for adding a task to the task list
     private func addTask() {
         
@@ -78,8 +82,8 @@ struct TaskItemView: View {
         }
         // we add the task to the options that came up by choice
         let task = TaskInfo(context: viewContext)
-      
-       // task.header = headerTask
+        
+        // task.header = headerTask
         if !textTask.string.isEmpty {
             task.text = textTask
         } else {
@@ -90,7 +94,7 @@ struct TaskItemView: View {
         }
         task.date = date
         editList.addToTask(task)
-       
+        
         
         do {
             // Saving data in Core Data
