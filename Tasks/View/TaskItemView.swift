@@ -11,6 +11,7 @@ import TextEditor
 
 struct TaskItemView: View {
     @EnvironmentObject var scene: SceneDelegate
+    @EnvironmentObject var appDelegate: AppDelegate
     @Environment(\.managedObjectContext) private var viewContext
     // The task itself passed to the view
     @State var task: TaskInfo?
@@ -20,7 +21,10 @@ struct TaskItemView: View {
     @State var headerTask = NSAttributedString()
     // The text for the task itself
     @State var textTask = NSAttributedString()
-
+    private var deviceOrientation: DeviceOrientation {
+        self.appDelegate.deviceOrientation == "Landscape" ? DeviceOrientation.Landscape : DeviceOrientation.portrait
+    }
+    
     var deviceFrame: CGRect {
         if let frame = scene.sceneSize {
             return frame
@@ -31,21 +35,15 @@ struct TaskItemView: View {
     var body: some View {
         
         ScrollView(.vertical ,showsIndicators: false) {
-                
                 HStack {
-                    
-                    TextEditor(attributedText: NSMutableAttributedString(attributedString: textTask) , deviceFrame: deviceFrame, onCommit: { text in
+                    TextEditor(deviceOrientation: deviceOrientation, attributedText: NSMutableAttributedString(attributedString: textTask) , deviceFrame: deviceFrame, onCommit: { text in
                         self.textTask = text
                     })
-                    
                 }
-            
                 .onDisappear {
                     self.addTask()
                 }
-            
         }
-        
     }
     
     // MARK: - Method for adding a task to the task list
@@ -83,7 +81,7 @@ struct TaskItemView: View {
             task.text = textTask
         } else {
             let attributes = [NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Bold", size: 24)!,
-                              NSAttributedString.Key.foregroundColor: UIColor(named: "whiteBlack")]
+                              NSAttributedString.Key.foregroundColor: UIColor.label]
             task.text = NSMutableAttributedString(string: "DelitedFull#195674", attributes: attributes as [NSAttributedString.Key : Any])
             task.date = date
         }

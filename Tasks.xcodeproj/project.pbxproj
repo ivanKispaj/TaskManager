@@ -12,7 +12,7 @@
 		63700BA8295ED22B00CA976E /* chunk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63700BA7295ED22B00CA976E /* chunk.swift */; };
 		63700BAB2963289600CA976E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63700BAA2963289600CA976E /* AppDelegate.swift */; };
 		63700BAD296328A200CA976E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63700BAC296328A200CA976E /* SceneDelegate.swift */; };
-		63700BCD2964C67F00CA976E /* TextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 63700BCC2964C67F00CA976E /* TextEditor */; };
+		63700C3329672BDB00CA976E /* TextEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 63700C3229672BDB00CA976E /* TextEditor */; };
 		63F2B7AF2957517D00463B85 /* TasksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F2B7AE2957517D00463B85 /* TasksApp.swift */; };
 		63F2B7B12957517D00463B85 /* TaskTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F2B7B02957517D00463B85 /* TaskTableView.swift */; };
 		63F2B7B32957517F00463B85 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63F2B7B22957517F00463B85 /* Assets.xcassets */; };
@@ -52,7 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63700BCD2964C67F00CA976E /* TextEditor in Frameworks */,
+				63700C3329672BDB00CA976E /* TextEditor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,7 +188,7 @@
 			);
 			name = Tasks;
 			packageProductDependencies = (
-				63700BCC2964C67F00CA976E /* TextEditor */,
+				63700C3229672BDB00CA976E /* TextEditor */,
 			);
 			productName = Tasks;
 			productReference = 63F2B7AB2957517D00463B85 /* Tasks.app */;
@@ -219,7 +219,7 @@
 			);
 			mainGroup = 63F2B7A22957517C00463B85;
 			packageReferences = (
-				63700BCB2964C67F00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */,
+				63700C3129672BDB00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */,
 			);
 			productRefGroup = 63F2B7AC2957517D00463B85 /* Products */;
 			projectDirPath = "";
@@ -475,20 +475,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		63700BCB2964C67F00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */ = {
+		63700C3129672BDB00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ivanKispaj/TextEditor.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
+				branch = master;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		63700BCC2964C67F00CA976E /* TextEditor */ = {
+		63700C3229672BDB00CA976E /* TextEditor */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63700BCB2964C67F00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */;
+			package = 63700C3129672BDB00CA976E /* XCRemoteSwiftPackageReference "TextEditor" */;
 			productName = TextEditor;
 		};
 /* End XCSwiftPackageProductDependency section */

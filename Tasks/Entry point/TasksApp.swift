@@ -44,7 +44,7 @@ extension TasksApp {
         task.date = Date()
         // task.header = NSAttributedString(string: "Добро пожаловать в приложение!")
         let attributes = [NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Bold", size: 24)!,
-                          NSAttributedString.Key.foregroundColor: UIColor(named: "whiteBlack")]
+                          NSAttributedString.Key.foregroundColor: UIColor.label]
         let header = NSMutableAttributedString(string: "Добро пожаловать\n", attributes: attributes as [NSAttributedString.Key : Any])
         let attributesText = [NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Bold", size: 14)!,
                               NSAttributedString.Key.foregroundColor: UIColor.red]

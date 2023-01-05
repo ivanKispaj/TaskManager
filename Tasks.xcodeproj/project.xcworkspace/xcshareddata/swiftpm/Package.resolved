@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ivanKispaj/TextEditor.git",
       "state" : {
-        "revision" : "22d3fbc33b4176ce84edcb706e5d9effbd694409",
-        "version" : "2.0.0"
+        "branch" : "master",
+        "revision" : "11a51f5f6bbb857d6fce86345c78f08c1c1c96f6"
       }
     }
   ],
