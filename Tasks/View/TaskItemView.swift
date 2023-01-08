@@ -10,8 +10,6 @@ import SwiftUI
 import TextEditor
 
 struct TaskItemView: View {
-    @EnvironmentObject var scene: SceneDelegate
-    @EnvironmentObject var appDelegate: AppDelegate
     @Environment(\.managedObjectContext) private var viewContext
     // The task itself passed to the view
     @State var task: TaskInfo?
@@ -21,22 +19,12 @@ struct TaskItemView: View {
     @State var headerTask = NSAttributedString()
     // The text for the task itself
     @State var textTask = NSAttributedString()
-    private var deviceOrientation: DeviceOrientation {
-        self.appDelegate.deviceOrientation == "Landscape" ? DeviceOrientation.Landscape : DeviceOrientation.portrait
-    }
-    
-    var deviceFrame: CGRect {
-        if let frame = scene.sceneSize {
-            return frame
-        } else {
-            return CGRect(x: 0, y: 0, width: 0, height: 0)
-        }
-    }
+
     var body: some View {
         
         ScrollView(.vertical ,showsIndicators: false) {
                 HStack {
-                    TextEditor(deviceOrientation: deviceOrientation, attributedText: NSMutableAttributedString(attributedString: textTask) , deviceFrame: deviceFrame, onCommit: { text in
+                    TextEditor( attributedText: NSMutableAttributedString(attributedString: textTask) , onCommit: { text in
                         self.textTask = text
                     })
                 }

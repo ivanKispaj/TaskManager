@@ -12,7 +12,6 @@ import SwiftUI
 @main
 struct TasksApp: App {
     let persistenceController = PersistenceController.shared
-    @UIApplicationDelegateAdaptor var delegate: AppDelegate
     @AppStorage("FirstEnter") var appStatus: Bool = false
     var body: some Scene {
         WindowGroup {
